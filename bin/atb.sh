@@ -140,7 +140,15 @@ function init_checkout_code(){
     count=`ls $1|wc -w`
     if [[ "$count" -eq "0" ]]; then
         echo "开始从资源库 [ ${repository_url} ] 检出代码" 
-        cd $1 && $2 ${repository_url} && exit 0 &
+		case "${checkout_command[0]}" in
+			svn )
+				cd $1 && $2 ${repository_url} --username ${svn_username} --password ${svn_password} && exit 0 &
+				;;
+			git )
+				cd $1 && $2 ${repository_url} && exit 0 &
+				;;
+		esac
+        
     fi
     echo "[ $1 ] 代码已检出"
     return 0
@@ -482,6 +490,12 @@ war_name=( $( read_ini ${conf_filename} project config_war_name ) )
 
 #代码检出命令
 checkout_command=( $( read_ini ${conf_filename} command config_checkout_command ) )
+
+#SVN账号
+svn_username=( $( read_ini ${conf_filename} svn-authentication config_svn_username ) )
+
+#SVN密码
+svn_password=( $( read_ini ${conf_filename} svn-authentication config_svn_password ) )
 
 #maven本地路径
 maven_home=( $( read_ini ${conf_filename} maven config_maven_home ) )
