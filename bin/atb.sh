@@ -142,7 +142,7 @@ function init_checkout_code(){
         echo "开始从资源库 [ ${repository_url} ] 检出代码" 
 		case "${checkout_command[0]}" in
 			svn )
-				cd $1 && $2 ${repository_url} --username ${svn_username} --password ${svn_password} && exit 0 &
+				cd $1 && $2 ${repository_url} --username ${svn_username} --password ${svn_password}
 				;;
 			git )
 				cd $1 && $2 ${repository_url} && exit 0 &
@@ -568,7 +568,9 @@ else
         case "$1" in
         -du      ) dirct_upload="-du"                 ;;
         -h       ) show_help_flag="-h"                ;;
-        -r       ) local_or_remote="-r"               ;;
+        -r       ) local_or_remote="-r";
+                   parent_project_path="${remote_project_basepath}/${project_name}"
+                                                    ;;
         -l       ) local_or_remote="-l"               ;;
         -c       ) clean_project="-c"                 ;;
         -his     ) remote_backup_history="-his"       ;;
