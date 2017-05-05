@@ -568,9 +568,7 @@ else
         case "$1" in
         -du      ) dirct_upload="-du"                 ;;
         -h       ) show_help_flag="-h"                ;;
-        -r       ) local_or_remote="-r";
-                   parent_project_path="${remote_project_basepath}/${project_name}"
-                                                    ;;
+        -r       ) local_or_remote="-r"               ;;
         -l       ) local_or_remote="-l"               ;;
         -c       ) clean_project="-c"                 ;;
         -his     ) remote_backup_history="-his"       ;;
@@ -578,7 +576,7 @@ else
         [0-9]*   ) server_flag="$1"                   ;;
         *_[0-9]* ) backup_version="$1"                ;;
         -i       ) init;  exit 0                      ;;
-        -v       ) version;  exit 0                      ;;
+        -v       ) version;  exit 0                   ;;
         *        ) echo "$1 is invalid"; exit 0;      ;;
         esac
         shift
@@ -612,7 +610,10 @@ elif [[ "${local_or_remote}" = "-r" ]]; then
         remote_port="${remote_ports[$arr_index]}"
         remote_pwd="${remote_pwds[$arr_index]}"
         remote_server_path="${remote_server_paths[$arr_index]}"
-
+        
+        parent_project_path="${remote_project_basepath}/${project_name}";
+        sub_project_path="${parent_project_path}/${war_sub_project_name}"
+        war_path="${sub_project_path}/target/${war_name}"
         server_path="${remote_server_path}"
         remote_backup_path="${server_path}/backup"
         profile="${remote_profiles[${arr_index}]}"
