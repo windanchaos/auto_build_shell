@@ -1,0 +1,124 @@
+#!/bin/bash
+##############################################################################
+###       初始化 创建文件夹检出代码
+##############################################################################
+function init(){
+    show_banner
+    info "atb 初始化中..."
+    info ""
+    info "正在检查本地发版路径..."
+    check_path_and_create ${local_project_basepath}
+    info ""
+    info "正在检查远程发版路径..."
+    check_path_and_create ${remote_project_basepath}
+    info ""
+    info "正在检查代码管理工具..."
+    info "代码管理工具为 [ ${checkout_command[0]} ]" 
+    case "${checkout_command[0]}" in
+        svn )
+            init_checkout_command=(svn checkout)
+            init_checkout_code ${local_project_basepath} "${init_checkout_command[*]}"
+            init_checkout_code ${remote_project_basepath} "${init_checkout_command[*]}"
+            ;;
+        git )
+            init_checkout_command=(git clone)
+            init_checkout_code ${local_project_basepath} "${init_checkout_command[*]}"
+            init_checkout_code ${remote_project_basepath} "${init_checkout_command[*]}"
+            ;;
+    esac
+    # info "正在检查构建工具..."
+    # case "${checkout_command[0]}" in
+    #     mvn )
+    #         info "检测到当前配置代码管理工具为 [ ${checkout_command[0]} ]" 
+            
+    #         ;;
+    #     gradle )
+    #         info "检测到当前配置代码管理工具为 [ ${checkout_command[0]} ]" 
+                
+    #         ;;
+    # esac
+    for i in "${!remote_ips[@]}"; do  
+        info ""
+        # 初始化时的command_ssh
+        command_ssh=(ssh -t -T -p ${remote_ports[$i]} ${remote_users[$i]}@${remote_ips[i]})
+        info "正在检查${remote_ips[$i]} 上 [ ${remote_shell_dir} ] 是否存在..."
+        check_remote_path_and_create $i
+        upload_restart_file ${remote_shell_name} $i
+    done
+    info ""
+    info "atb初始化结束"
+    exit 0
+}
+
+##############################################################################
+###       本地及远程路径检查 不存在则创建
+##############################################################################
+function check_path_and_create(){
+    if [[ ! -e "$1" ]]; then
+        info "创建文件夹 [ $1 ] "
+        mkdir -p $1
+    else
+        info "[ $1 ] 已存在"
+    fi
+    return 0
+}
+
+##############################################################################
+###       若脚本不存在上传restart脚本 接收参数: 远程配置数组索引$1
+##############################################################################
+function check_remote_path_and_create(){
+    if ! ssh ${remote_users[$1]}@${remote_ips[$1]} test -d ${remote_shell_dir}; then
+        info "开始创建文件夹 [ ${remote_shell_dir} ] "
+        # info ${command_ssh[@]} "mkdir -p ${remote_shell_dir}"
+        ${command_ssh[@]} "mkdir -p ${remote_shell_dir}"
+        return 0
+    fi
+    info "${remote_users[$1]}@${remote_ips[$1]} 上 [ ${remote_shell_dir} ] 已存在"
+    return 0
+}
+
+##############################################################################
+###       检查是否已经初始化过，若未初始化则检出代码（异步执行）
+##############################################################################
+function init_checkout_code(){
+    info ""
+    # info $2
+    #文件夹判空
+    count=`ls $1|wc -w`
+    if [[ "$count" -eq "0" ]]; then
+        info "开始从资源库 [ ${repository_url} ] 检出代码到 [ $1 ]" 
+		case "${checkout_command[0]}" in
+			svn )
+				cd $1 && $2 ${repository_url} --username ${svn_username} --password ${svn_password}
+				;;
+			git )
+				cd $1 && $2 ${repository_url}
+				;;
+		esac
+    else
+        info "[ $1 ] 代码已检出"
+    fi
+    return 0
+}
+
+##############################################################################
+###       若脚本不存在上传restart脚本 接收参数: 文件名: $1, 远程配置数组索引 $2
+##############################################################################
+function upload_restart_file(){
+    if ! ssh ${remote_users[$2]}@${remote_ips[$2]} test -e "${remote_shell_dir}/$1"; then
+         info "ip: [ ${remote_ips[$2]} ] restart.sh文件上传中..."
+         scp ${ATB_HOME}/bin/$1 "${remote_users[$2]}@${remote_ips[$2]}:${remote_shell_dir}"
+        return 0
+    fi
+    info "${remote_users[$2]}@${remote_ips[$2]} [ ${remote_shell_dir}/$1 ] 已存在"
+    return 0
+}
+
+##############################################################################
+###       依赖检查
+##############################################################################
+function check_dependencies(){
+    # 依赖列表 逐项检查
+    
+    return 0
+}

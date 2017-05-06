@@ -1,0 +1,13 @@
+#!/bin/bash
+##############################################################################
+###       maven clean
+##############################################################################
+function clear_project(){
+	print_params
+    info "工程clean开始，进入工程目录 $parent_project_path"
+    cd "$parent_project_path"
+    info "${maven_shell} clean"
+    ${maven_shell} clean
+    info "工程clean结束"
+    return 0
+}

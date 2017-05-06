@@ -1,0 +1,21 @@
+#!/bin/bash
+##############################################################################
+###    显示帮助
+##############################################################################
+function show_help(){
+    print_params
+    print
+    print "usage: atb [Options]"
+    print
+    print "Options："
+    print " -v                                    版本号与项目信息"
+    print " -i                                    根据配置文件进行初始化"
+    print " -c                                    clean 工程"
+    print " -du  [ -l ]                           跳过编译步骤直接上传已存在war包到本地服务器"
+    print " -du -r <server_flag>                  跳过编译步骤直接上传已存在war包到指定的远程服务器"
+    print " -h                                    帮助"
+    print " -l                                    自动编译打包本地部署"
+    print " -r <server_flag>                      自动编译打包远程部署到指定的远程服务器"
+    print " -r <server_flag> -his                 查看指定的远程服务器上备份历史"
+    print " -r <server_flag> -rb <backup_version> 将指定服务器web应用回滚到指定版本"
+}

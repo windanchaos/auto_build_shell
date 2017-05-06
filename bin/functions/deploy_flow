@@ -1,0 +1,163 @@
+#!/bin/bash
+##############################################################################
+###       检出代码
+##############################################################################
+function checkout_code(){
+    info "正在从资源库 [ $repository_url ] 检出代码"
+    #字符串转命令通用写法
+    eval ${checkout_command[@]}
+    return 0
+}
+
+##############################################################################
+###       编译打包
+##############################################################################
+function package(){
+    if [[ "${profile}" = "" ]]; then
+        info "mvn clean package -DskipTests=true"
+        ${maven_shell} clean package -DskipTests=true
+        return 0
+    fi
+    info "mvn clean package -DskipTests=true -P$profile"
+    ${maven_shell} clean package -DskipTests=true -P${profile}
+    return 0
+}
+
+##############################################################################
+###    检查war是否已存在，不存在退出 返回值 0-存在，1-不存在
+##############################################################################
+function check_war(){
+    if [ -e "$war_path" ]; then
+        return 0
+    fi
+    info "$war_path 下面 war包不存在"
+    return 1
+}
+
+##############################################################################
+###    本地拷贝
+##############################################################################
+function local_copy(){
+    # info "进入war包目录：$sub_project_path/target"
+    # info "开始传输war包到本地服务器目录：$server_path/webapps"
+    cd "$sub_project_path/target"
+    cp $war_name "$server_path/webapps/$war_name"
+}
+
+##############################################################################
+###       远程拷贝 先拷贝到备份文件夹，然后关闭tomcat，从备份文件中拷贝出最新版 重启tomcat
+##############################################################################
+function remote_copy(){
+    # info "Param: remote_user = $remote_user" 
+    # info "Param: remote_ip = $remote_ip" 
+    # info "Param: remote_port = $remote_port" 
+    # info "Param: remote_pwd = $remote_pwd" 
+    info "进入war包目录：${sub_project_path}/target"
+    cd "${sub_project_path}/target"
+    
+    #检查服务器上备份文件夹是否存在
+    if ssh ${remote_user}@${remote_ip} test -d ${remote_backup_path}; then
+        info "[ ${remote_backup_path} ]已存在"
+    else 
+        info "[ ${remote_backup_path} ]创建中"
+        ${command_ssh[@]} "mkdir -p ${remote_backup_path}"
+        info "[ ${remote_backup_path} ]创建成功"
+    fi
+
+    #定义远程文件名称
+    remote_war_name=""
+    if [[ ${remote_backup_switch} == "on" ]]; then
+        # 查看备份文件个数
+        backup_file_num=$(${command_ssh[@]} "cd ${remote_backup_path} && ls -l | grep "^-" | wc -l")
+        if [[ "${backup_file_num}" -ge "${remote_max_backup_file_num}" ]]; then
+            info "备份数[ ${backup_file_num} ]超过最大备份数量"
+            info "删除早期备份文件$(${command_ssh[@]} "cd ${remote_backup_path} && ls -rt|head -1")"
+            # 删除最早备份文件
+            ${command_ssh[@]} "cd ${remote_backup_path} && ls -rt|head -1|xargs rm -rf" 
+        fi
+        # 按日期备份
+        current_time=`date +%Y%m%d%H%M%S`
+        remote_war_name=${war_name%.*}_${current_time}
+    else
+        remote_war_name=${war_name}
+    fi
+    
+    #打印密码方便拷贝
+    info "开始传输 [ ${war_name} ] 到 ${remote_user}@${remote_ip}:${remote_backup_path}/${remote_war_name} 密码：${remote_pwd}"
+    scp ${war_name} "${remote_user}@${remote_ip}:${remote_backup_path}/${remote_war_name}"
+}
+
+##############################################################################
+###       重启远程服务器
+##############################################################################
+function restart_remote_server() {
+    # info "${command_ssh[@]} $remote_shell_dir/restart.sh ${war_name} ${remote_server_path}"
+    # 执行服务器重启脚本
+    # -T     Disable pseudo-terminal allocation.
+    # -t     Force pseudo-terminal allocation.  T
+    #         his can be used to execute arbitrary screen-based programs on a remote machine, 
+    #         which can be very useful, e.g.
+    #       when implementing menu services.  
+    #       Multiple -t options force tty allocation, even if ssh has no local tty.
+    # -p 指定端口号
+    info "重启服务中..."
+    ${command_ssh[@]} "$remote_shell_dir/$remote_shell_name ${war_name} ${remote_server_path}"
+}
+
+##############################################################################
+###       回滚到某个版本
+##############################################################################
+function rollback_backup_version() {
+    info "回滚中..."
+    ${command_ssh[@]} "$remote_shell_dir/$remote_shell_name ${backup_version} ${remote_server_path}"
+}
+
+##############################################################################
+###       重启本地服务器
+##############################################################################
+function restart_local_server() {
+    cd "$server_path"
+    # ./bin/shutdown.sh
+    # 根据程唯一筛选条件杀死进程
+    ps -ef | grep ${server_path##*/} | grep -v grep | awk '{print $2}'  | sed -e "s/^/kill -9 /g" | sh -
+    ./bin/startup.sh
+    tail -f ./logs/catalina.out
+}
+
+##############################################################################
+###       发布流程 return 0 正常 return 1 不正常
+##############################################################################
+function deploy_flow(){
+    print_params
+    #不直接上传，检出代码，打包
+    if [[ "$dirct_upload" != "-du" ]]; then
+        #检出代码
+        checkout_code
+        #编译代码
+        package
+    fi
+
+    #war包不存在, 检出代码并打包
+    if [[ ! -e "$war_path" ]]; then
+        #检出代码
+        checkout_code
+        #编译代码
+        package
+
+        #二次检查war包是否存在，war包不存在退出
+        if [[ ! -e "$war_path" ]]; then
+            error "发布失败：war包不存在"
+            return 1
+        fi
+    fi
+
+    #上传代码到服务器,并重启服务
+    if [[ "$local_or_remote" = "-r" ]]; then
+        remote_copy
+        restart_remote_server
+    else
+        local_copy
+        restart_local_server
+    fi
+    return 0
+}

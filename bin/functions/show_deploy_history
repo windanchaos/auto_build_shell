@@ -1,0 +1,11 @@
+#!/bin/bash
+##############################################################################
+###       查看发布历史
+##############################################################################
+function show_deploy_history(){
+	print_params
+    list "↓                                         备份列表                                               ↓"
+    echo ${command_ssh[@]} "cd ${remote_backup_path} && ls -lhG"
+    ${command_ssh[@]} "cd ${remote_backup_path} && ls -lhG"
+    return 0
+}

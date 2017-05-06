@@ -1,0 +1,107 @@
+#!/bin/bash
+
+#配置文件路径名称
+# conf_filename=~/conf.ini
+dir="$(dirname "$0")"
+conf_filename=$dir/../conf/conf.ini
+echo $conf_filename
+#配置文件语法检查
+check_syntax $conf_filename
+if [ ! $? -eq 0 ];then  
+    error "配置文件语法检查未通过,请使用标准ini格式"
+    exit 0
+fi  
+
+#以下参数代表服务器配置信息有多少机器配置多少个,这里的配置用于取值
+#远程服务器路径
+remote_server_paths=( $( read_ini ${conf_filename} remote-server config_remote_server_paths ) ) 
+#远程服务器用户
+remote_users=( $( read_ini ${conf_filename} remote-server config_remote_users ) ) 
+#远程服务器ip
+remote_ips=( $( read_ini ${conf_filename} remote-server config_remote_ips ) ) 
+#远程服务器端口
+remote_ports=( $( read_ini ${conf_filename} remote-server config_remote_ports ) ) 
+#远程服务器密码 可以不设置
+remote_pwds=( $( read_ini ${conf_filename} remote-server config_remote_pwds ) ) 
+#maven打包用的远程profiles
+remote_profiles=( $( read_ini ${conf_filename} remote-server config_remote_profiles ) ) 
+#远程server_flags
+remote_server_flags=( $( read_ini ${conf_filename} remote-server config_remote_server_flags ) )  
+#远程重启shell目录 将restart脚本放到远程服务器指定的目录下，即可远程重启tomcat
+remote_shell_dir=( $( read_ini ${conf_filename} remote-server config_remote_shell_dir ) ) 
+#服务器上最大备份文件数
+remote_max_backup_file_num=( $( read_ini ${conf_filename} remote-server config_remote_max_backup_file_num ) ) 
+#备份功能开关
+remote_backup_switch=( $( read_ini ${conf_filename} remote-server config_remote_backup_switch ) )
+
+#本地tomcat webapps目录
+local_server_path=( $( read_ini ${conf_filename} local-server config_local_server_path ) ) 
+
+#项目远程build路径
+remote_project_basepath=( $( read_ini ${conf_filename} project config_remote_project_basepath ) )
+#项目本地路径
+local_project_basepath=( $( read_ini ${conf_filename} project config_local_project_basepath ) )
+#项目名称
+project_name=( $( read_ini ${conf_filename} project config_project_name ) )
+#war包所在的maven子模块,只支持一个war包的工程 为空时代表在父及目录下的target中存在war包
+war_sub_project_name=( $( read_ini ${conf_filename} project config_war_sub_project_name ) )
+#本地profile
+local_profile=( $( read_ini ${conf_filename} project config_local_profile ) ) 
+#war包名
+war_name=( $( read_ini ${conf_filename} project config_war_name ) )
+
+#代码检出命令
+checkout_command=( $( read_ini ${conf_filename} command config_checkout_command ) )
+
+#SVN账号
+svn_username=( $( read_ini ${conf_filename} svn-authentication config_svn_username ) )
+
+#SVN密码
+svn_password=( $( read_ini ${conf_filename} svn-authentication config_svn_password ) )
+
+#maven本地路径
+maven_home=( $( read_ini ${conf_filename} maven config_maven_home ) )
+
+#项目git或svn地址
+repository_url=( $( read_ini ${conf_filename} repository config_repository_url ) )
+
+#父工程路径
+parent_project_path="${local_project_basepath}/${project_name}"
+#子工程路径
+sub_project_path="${parent_project_path}/${war_sub_project_name}"
+#war包路径
+war_path="${sub_project_path}/target/${war_name}"
+
+#maven打包使用的profile
+profile="${local_profile}"
+#远程服务器标识,用于区分多台机器
+server_flag=""
+#最终server_path
+server_path="${local_server_path}"
+
+#本地或远程部署
+local_or_remote=""
+#直接上传
+dirct_upload=""
+#maven_shell
+maven_shell=""
+
+#远程tomcat webapps目录
+remote_server_path=""
+#远程服务器用户
+remote_user=""
+#远程服务器ip
+remote_ip=""
+#远程服务器端口
+remote_port=""
+#远程服务器密码 可以不设置
+remote_pwd=""
+
+#远程服务器上备份存储路径 默认为tomcat目录下的backup
+remote_backup_path=""
+#远程服务器上备份历史
+remote_backup_history=""
+#远程重启脚本名称
+remote_shell_name="restart.sh"
+#备份版本号
+backup_version=""
