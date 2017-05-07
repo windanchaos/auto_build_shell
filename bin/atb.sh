@@ -40,6 +40,7 @@ function show_help(){
     echo " -du -r <server_flag>                  跳过编译步骤直接上传已存在war包到指定的远程服务器"
     echo " -h                                    帮助"
     echo " -l                                    自动编译打包本地部署"
+    echo " -lstop                                关闭本地服务器"
     echo " -r <server_flag>                      自动编译打包远程部署到指定的远程服务器"
     echo " -r <server_flag> -his                 查看指定的远程服务器上备份历史"
     echo " -r <server_flag> -rb <backup_version> 将指定服务器web应用回滚到指定版本"
@@ -314,6 +315,16 @@ function restart_local_server() {
 }
 
 ##############################################################################
+###       关闭本地服务器
+##############################################################################
+function stop_local_server() {
+    # echo "${server_path##*/}"
+    # echo `ps -ef | grep ${server_path##*/}`
+    ps -ef | grep ${server_path##*/} | grep -v grep | awk '{print $2}'  | sed -e "s/^/kill -9 /g" | sh -
+    echo "本地服务器已关闭"
+}
+
+##############################################################################
 ###       发布流程 return 0 正常 return 1 不正常
 ##############################################################################
 function deploy_flow(){
@@ -572,6 +583,7 @@ else
         -h       ) show_help_flag="-h"                ;;
         -r       ) local_or_remote="-r"               ;;
         -l       ) local_or_remote="-l"               ;;
+        -lstop   ) stop_local_server_flag="-lstop"    ;;
         -c       ) clean_project="-c"                 ;;
         -his     ) remote_backup_history="-his"       ;;
         -rb      ) remote_rollback="-rb"              ;;
@@ -643,7 +655,10 @@ command_ssh=(ssh -t -T -p ${remote_port} ${remote_user}@${remote_ip})
 #debug时查看参数输出
 echo_params
 
-if [[ "$clean_project" = "-c" ]]; then
+if [[ "$stop_local_server_flag" = "-lstop" ]]; then
+    stop_local_server
+    exit 0;
+elif [[ "$clean_project" = "-c" ]]; then
     echo "工程clean开始，进入工程目录 $parent_project_path"
     cd "$parent_project_path"
     #如果是clean工程命令，执行完直接退出

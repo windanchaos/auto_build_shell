@@ -33,7 +33,7 @@ show_banner
 ##############################################################################
 ###    变量声明 var=value 等号必须前后紧挨着
 ##############################################################################
-if   [[ ! -n ${AT1B_HOME} ]]; 
+if   [[ ! -n ${ATB_HOME} ]]; 
 then 
     warning ""
     warning "------------------------------------------------------------------------"
@@ -106,6 +106,7 @@ do
 				profile="${local_profile}"
 				server_path="${local_server_path}"
              ;;
+    -lstop   ) stop_local_server; exit 0          ;;
     -c       ) clear_project; exit 0;             ;;
     -his     ) show_deploy_history; exit 0        ;;
     -rb      )     
