@@ -12,3 +12,4 @@
 * [Shell如何模块化和复用](http://blog.csdn.net/arganzheng/article/details/6786926)
 * [重定向 1>&2 2>&1](http://www.cnblogs.com/zhaobin/archive/2009/06/25/1511163.html)
 * [Shell解析INI文件](http://blog.csdn.net/chlaws/article/details/8799784#)
+* [在Bash下输出彩色的文本](http://utensil.github.io/tech/2007/09/10/colorful-bash.html)
