@@ -106,6 +106,7 @@ do
 				profile="${local_profile}"
 				server_path="${local_server_path}"
              ;;
+    -lstop   ) stop_local_server; exit 0          ;;
     -c       ) clear_project; exit 0;             ;;
     -his     ) show_deploy_history; exit 0        ;;
     -rb      )     
