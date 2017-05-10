@@ -114,6 +114,20 @@ function upload_restart_file(){
     return 0
 }
 
+function upload_restart_file(){
+    if ! ssh ${remote_users[$2]}@${remote_ips[$2]} test -e "${remote_shell_dir}/$1"; then
+        info "进入目录 [ ${ATB_HOME}/bin ]"
+        cd ${ATB_HOME}/bin
+        info "ip: [ ${remote_ips[$2]} ] $1 文件上传中..."
+        scp $1 "${remote_users[$2]}@${remote_ips[$2]}:${remote_shell_dir}"
+        info "进入 [ ${remote_ips[$2]}:${remote_shell_dir} ] 为$1分配执行权限"
+        ${command_ssh[@]} "cd ${remote_shell_dir} && chmod +x $1"
+        return 0
+    fi
+    info "${remote_users[$2]}@${remote_ips[$2]} [ ${remote_shell_dir}/$1 ] 已存在"
+    return 0
+}
+
 ##############################################################################
 ###       依赖检查
 ##############################################################################
