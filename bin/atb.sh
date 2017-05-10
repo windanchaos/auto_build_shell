@@ -160,8 +160,12 @@ function init_checkout_code(){
 ##############################################################################
 function upload_restart_file(){
     if ! ssh ${remote_users[$2]}@${remote_ips[$2]} test -e "${remote_shell_dir}/$1"; then
-         echo "ip: [ ${remote_ips[$2]} ] restart.sh文件上传中..."
-         scp ${ATB_HOME}/bin/$1 "${remote_users[$2]}@${remote_ips[$2]}:${remote_shell_dir}"
+        echo "进入目录 [ ${ATB_HOME} ]"
+        cd ${ATB_HOME}
+        echo "为restart.sh分配执行权限"
+        chmod +x bin/$1
+        echo "ip: [ ${remote_ips[$2]} ] restart.sh文件上传中..."
+        scp bin/$1 "${remote_users[$2]}@${remote_ips[$2]}:${remote_shell_dir}"
         return 0
     fi
     echo "${remote_users[$2]}@${remote_ips[$2]} [ ${remote_shell_dir}/$1 ] 已存在"
