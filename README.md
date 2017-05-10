@@ -42,14 +42,11 @@
         export PATH=$PATH:$ATB_HOME/bin
         source ${your profile}
     ```
-3. 修改权限
-
-    `chmod +x ${ATB_HOME}/bin/*`
-4. 修改conf.ini文件中的配置项，参考：[配置说明](docs/配置说明.md)
-5. 初始化
+3. 修改conf.ini文件中的配置项，参考：[配置说明](docs/配置说明.md)
+4. 初始化
 
     `atb.sh -i`
-6. 发布
+5. 发布
 
     ```SHELL
         atb.sh -l # 本地
