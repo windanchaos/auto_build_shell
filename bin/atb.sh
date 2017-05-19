@@ -136,22 +136,35 @@ function check_remote_path_and_create(){
 ### 1      检查是否已经初始化过，若未初始化则检出代码（异步执行）
 ##############################################################################
 function init_checkout_code(){
-    # echo $2
+    # info $2
     #文件夹判空
-    count=`ls $1|wc -w`
-    if [[ "$count" -eq "0" ]]; then
-        echo "开始从资源库 [ ${repository_url} ] 检出代码" 
-		case "${checkout_command[0]}" in
-			svn )
-				cd $1 && $2 ${repository_url} --username ${svn_username} --password ${svn_password}
-				;;
-			git )
-				cd $1 && $2 ${repository_url} && exit 0 &
-				;;
-		esac
-        
+    #count=`ls $1|wc -w`
+    #if [[ "$count" -eq "0" ]]; then
+    # 如果工程路径下的工程名称文件夹不存在那么就检出
+    if [[ -d $1/${project_name} ]] then
+        info "开始从资源库 [ ${repository_url} ] 检出代码到 [ $1 ]" 
+        case "${checkout_command[0]}" in
+            svn )
+                cd $1 && $2 ${repository_url} --username ${svn_username} --password ${svn_password}
+                ;;
+            git )
+                cd $1 && $2 ${repository_url}
+                ;;
+        esac
+    elif [[ $(ls $1/${project_name} |wc -w) -eq "0" ]]; then
+        #若工程文件夹已存在 内容为空也要检出代码
+        info "开始从资源库 [ ${repository_url} ] 检出代码到 [ $1 ]" 
+        case "${checkout_command[0]}" in
+            svn )
+                cd $1 && $2 ${repository_url} --username ${svn_username} --password ${svn_password}
+                ;;
+            git )
+                cd $1 && $2 ${repository_url}
+                ;;
+        esac
+    else
+        info "[ $1 ] 代码已检出"
     fi
-    echo "[ $1 ] 代码已检出"
     return 0
 }
 
@@ -165,7 +178,7 @@ function upload_restart_file(){
         echo "ip: [ ${remote_ips[$2]} ] $1 文件上传中..."
         scp $1 "${remote_users[$2]}@${remote_ips[$2]}:${remote_shell_dir}"
         echo "为$1分配执行权限并转换 [ $1 ] dos格式到unix格式"
-        ${command_ssh[@]} "cd ${remote_shell_dir} && chmod +x $1 && (vi +':w ++ff=unix' +':q' $1 || vim +':w ++ff=unix' +':q' $1) &&  echo 'dos格式转为unix格式'"
+        ${command_ssh[@]} "cd ${remote_shell_dir} && chmod +x $1 && (vi +':w ++ff=unix' +':q' $1 || vim +':w ++ff=unix' +':q' $1) &&  echo '强制设定$1格式为unix格式'"
         return 0
     fi
     echo "${remote_users[$2]}@${remote_ips[$2]} [ ${remote_shell_dir}/$1 ] 已存在"

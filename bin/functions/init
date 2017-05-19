@@ -81,11 +81,12 @@ function check_remote_path_and_create(){
 ###       检查是否已经初始化过，若未初始化则检出代码（异步执行）
 ##############################################################################
 function init_checkout_code(){
-    info ""
     # info $2
     #文件夹判空
-    count=`ls $1|wc -w`
-    if [[ "$count" -eq "0" ]]; then
+    #count=`ls $1|wc -w`
+    #if [[ "$count" -eq "0" ]]; then
+    # 如果工程路径下的工程名称文件夹不存在那么就检出
+    if [[ -d $1/${project_name} ]] then
         info "开始从资源库 [ ${repository_url} ] 检出代码到 [ $1 ]" 
 		case "${checkout_command[0]}" in
 			svn )
@@ -95,6 +96,17 @@ function init_checkout_code(){
 				cd $1 && $2 ${repository_url}
 				;;
 		esac
+    elif [[ $(ls $1/${project_name} |wc -w) -eq "0" ]]; then
+        #若工程文件夹已存在 内容为空也要检出代码
+        info "开始从资源库 [ ${repository_url} ] 检出代码到 [ $1 ]" 
+        case "${checkout_command[0]}" in
+            svn )
+                cd $1 && $2 ${repository_url} --username ${svn_username} --password ${svn_password}
+                ;;
+            git )
+                cd $1 && $2 ${repository_url}
+                ;;
+        esac
     else
         info "[ $1 ] 代码已检出"
     fi
