@@ -17,3 +17,4 @@
 * [对shell脚本Ctrl+C导致被脚本启动的进程全部中断退出](http://blog.csdn.net/ahliangyao/article/details/45071899)
 * [Shell调试篇](http://www.cnblogs.com/softwaretesting/archive/2012/02/06/2339671.html)
 * [Shell中转换dos格式到unix的方法](http://stackoverflow.com/questions/82726/convert-dos-line-endings-to-linux-line-endings-in-vim)
+* [Shell文件检查](http://blog.sina.com.cn/s/blog_62449fcf0100y4ht.html)
