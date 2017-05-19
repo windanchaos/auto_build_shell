@@ -63,7 +63,7 @@ function read_ini() {
 ### 1      初始化
 ##############################################################################
 function init(){
-    show_banner
+    # show_banner
     echo "atb 初始化中..."
     echo "正在检查本地发版路径..."
     check_path_and_create ${local_project_basepath}
