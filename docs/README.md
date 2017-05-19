@@ -13,3 +13,5 @@
 * [重定向 1>&2 2>&1](http://www.cnblogs.com/zhaobin/archive/2009/06/25/1511163.html)
 * [Shell解析INI文件](http://blog.csdn.net/chlaws/article/details/8799784#)
 * [在Bash下输出彩色的文本](http://utensil.github.io/tech/2007/09/10/colorful-bash.html)
+* [对shell脚本Ctrl+C导致被脚本启动的进程全部中断退出](http://blog.csdn.net/ahliangyao/article/details/45071899)
+* [Shell调试篇](http://www.cnblogs.com/softwaretesting/archive/2012/02/06/2339671.html)

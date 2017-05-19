@@ -164,8 +164,8 @@ function upload_restart_file(){
         cd ${ATB_HOME}/bin
         echo "ip: [ ${remote_ips[$2]} ] $1 文件上传中..."
         scp $1 "${remote_users[$2]}@${remote_ips[$2]}:${remote_shell_dir}"
-        echo "为$1分配执行权限"
-        ${command_ssh[@]} "cd ${remote_shell_dir} && chmod +x $1"
+        echo "为$1分配执行权限并转换 [ $1 ] dos格式到unix格式"
+        ${command_ssh[@]} "cd ${remote_shell_dir} && chmod +x $1 && (vi +':w ++ff=unix' +':q' $1 || vim +':w ++ff=dos' +':q' $1) &&  echo 'dos格式转为unix格式'"
         return 0
     fi
     echo "${remote_users[$2]}@${remote_ips[$2]} [ ${remote_shell_dir}/$1 ] 已存在"
