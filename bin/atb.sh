@@ -141,7 +141,7 @@ function init_checkout_code(){
     #count=`ls $1|wc -w`
     #if [[ "$count" -eq "0" ]]; then
     # 如果工程路径下的工程名称文件夹不存在那么就检出
-    if [[ -d $1/${project_name} ]] then
+    if [[ -d $1/${project_name} ]]; then
         info "开始从资源库 [ ${repository_url} ] 检出代码到 [ $1 ]" 
         case "${checkout_command[0]}" in
             svn )
