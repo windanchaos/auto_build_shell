@@ -142,7 +142,7 @@ function init_checkout_code(){
     #if [[ "$count" -eq "0" ]]; then
     # 如果工程路径下的工程名称文件夹不存在那么就检出
     if [[ -d $1/${project_name} ]]; then
-        info "开始从资源库 [ ${repository_url} ] 检出代码到 [ $1 ]" 
+        echo "开始从资源库 [ ${repository_url} ] 检出代码到 [ $1 ]" 
         case "${checkout_command[0]}" in
             svn )
                 cd $1 && $2 ${repository_url} --username ${svn_username} --password ${svn_password}
@@ -153,7 +153,7 @@ function init_checkout_code(){
         esac
     elif [[ $(ls $1/${project_name} |wc -w) -eq "0" ]]; then
         #若工程文件夹已存在 内容为空也要检出代码
-        info "开始从资源库 [ ${repository_url} ] 检出代码到 [ $1 ]" 
+        echo "开始从资源库 [ ${repository_url} ] 检出代码到 [ $1 ]" 
         case "${checkout_command[0]}" in
             svn )
                 cd $1 && $2 ${repository_url} --username ${svn_username} --password ${svn_password}
@@ -163,7 +163,7 @@ function init_checkout_code(){
                 ;;
         esac
     else
-        info "[ $1 ] 代码已检出"
+        echo "[ $1 ] 代码已检出"
     fi
     return 0
 }
