@@ -13,7 +13,12 @@ function init(){
     check_path_and_create ${remote_project_basepath}
     info ""
     info "正在检查代码管理工具..."
-    info "代码管理工具为 [ ${checkout_command[0]} ]" 
+    info "代码管理工具为 [ ${checkout_command[0]} ]"
+    info ""
+    info "正在检查ATB依赖"
+    check_dependencies ${checkout_command[0]}
+    test $? -eq 0 && info "依赖检查通过" || { error "请配置缺失的依赖项" ; exit 1; }
+    info ""
     case "${checkout_command[0]}" in
         svn )
             init_checkout_command=(svn checkout)
@@ -134,7 +139,24 @@ function upload_restart_file(){
 ###       依赖检查
 ##############################################################################
 function check_dependencies(){
-    # 依赖列表 逐项检查
+    info "------------------------------------------------------------------------"
+    uninstallCommandCount=0
     
-    return 0
+    # 依赖列表 逐项检查
+    java -version 1>/dev/null 2>&1 && info "JDK 已安装" || { info "JDK 未安装"; let uninstallCommandCount++; }
+    warning $?
+
+    ${maven_shell} -v 1>/dev/null 2>&1 && info "MAVEN 已安装" || { info "MAVEN 未安装"; let uninstallCommandCount++; }
+    warning $?
+
+    if [[ $1 == "git" ]]; then
+        git --version 1>/dev/null 2>&1 && info "GIT 已安装" || { info "GIT 未安装"; let uninstallCommandCount++; } 
+    else
+        svn --version 1>/dev/null 2>&1 && info "SVN 已安装" || { info "SVN 未安装"; let uninstallCommandCount++; }
+    fi 
+    warning $?
+    test -d ${local_server_path} && info "本地TOMCAT 已安装" || { info "TOMCAT 未安装"; let uninstallCommandCount++; }
+    warning $?
+    info "------------------------------------------------------------------------"
+    return $[ $uninstallCommandCount ]
 }
