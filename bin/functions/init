@@ -143,20 +143,21 @@ function check_dependencies(){
     uninstallCommandCount=0
     
     # 依赖列表 逐项检查
-    java -version 1>/dev/null 2>&1 && info "JDK 已安装" || { info "JDK 未安装"; let uninstallCommandCount++; }
-    warning $?
+    java1 -version 1>/dev/null 2>&1 && info "JDK 已安装" || { info "JDK 未安装"; let uninstallCommandCount++; }
+    #warning $?
 
     ${maven_shell} -v 1>/dev/null 2>&1 && info "MAVEN 已安装" || { info "MAVEN 未安装"; let uninstallCommandCount++; }
-    warning $?
+    #warning $?
 
     if [[ $1 == "git" ]]; then
         git --version 1>/dev/null 2>&1 && info "GIT 已安装" || { info "GIT 未安装"; let uninstallCommandCount++; } 
     else
         svn --version 1>/dev/null 2>&1 && info "SVN 已安装" || { info "SVN 未安装"; let uninstallCommandCount++; }
     fi 
-    warning $?
+    #warning $?
     test -d ${local_server_path} && info "本地TOMCAT 已安装" || { info "TOMCAT 未安装"; let uninstallCommandCount++; }
-    warning $?
+    #warning $?
     info "------------------------------------------------------------------------"
+    test ! $uninstallCommandCount -eq 0 && warning "未安装依赖项："$uninstallCommandCount
     return $[ $uninstallCommandCount ]
 }
