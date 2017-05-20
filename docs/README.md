@@ -19,3 +19,4 @@
 * [Shell中转换dos格式到unix的方法](http://stackoverflow.com/questions/82726/convert-dos-line-endings-to-linux-line-endings-in-vim)
 * [Shell文件检查](http://blog.sina.com.cn/s/blog_62449fcf0100y4ht.html)
 * [shell脚本实现同时多台远程主机执行命令的代码分享](http://www.cfei.net/archives/87422)
+* [Linux Shell Bash 带有特殊含义的退出码](http://www.cnblogs.com/osroot/archive/2010/01/11/1643947.html)
