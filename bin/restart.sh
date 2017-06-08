@@ -8,7 +8,7 @@ server_path=$2
 function deploy(){
     echo "删除旧版[ ${server_path}/webapps/${1%.*}* ]"
     #删除webapps下的war以及解压文件夹
-    rm -rf "${server_path}/webapps/${1%.*}*"
+    rm -rvf ${server_path}/webapps/${1%.*}*
     cp ${server_path}/backup/$(cd ${server_path}/backup; ls -rt|tail -1) ${server_path}/webapps/$1
 }
 
@@ -19,7 +19,7 @@ function del_exception_version(){
     #删除当前问题版本 包扩war包和解压文件夹
     filename=`echo $1 | sed 's/_//' | sed 's/[0-9]//g'`
     echo "删除当前问题版本："${server_path}/webapps/${filename}*""    
-    rm -rf "${server_path}/webapps/${filename}*"
+    rm -rvf "${server_path}/webapps/${filename}*"
 }
 
 ##############################################################################
