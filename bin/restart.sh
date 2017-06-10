@@ -10,6 +10,8 @@ function deploy(){
     #删除webapps下的war以及解压文件夹
     rm -rvf ${server_path}/webapps/${1%.*}*
     cp ${server_path}/backup/$(cd ${server_path}/backup; ls -rt|tail -1) ${server_path}/webapps/$1
+    cd ${server_path}/webapps && unzip $1 -d ${1%.*}
+    echo "解压[ $1 ]成功"
 }
 
 ##############################################################################
