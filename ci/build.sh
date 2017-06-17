@@ -1,18 +1,27 @@
 #!/bin/bash
+##代码编写遵守<Defensive BASH Programming>博客描述的以下原则
+########	Immutable global variables 
+########	Everything is local
+########	Everything is a function
+########	Debugging functions(bash -x)(set -x  …… set +x)
+########	Code clarity
+########	Each line does just one thing
+
+
 #本地git代码库
-githome="~/ArhasMK/"
+readonly GIT_HOME="~/ArhasMK/"
 #部署路径
-sitesPath="/arthas/sites/"
+readonly SITE_PATH="/arthas/sites/"
 #git编译的参数
-profiles="st-https"
+readonly PROFILES="st-https"
 
 #远程服务器链接信息，需设置ssh免密登陆
-config_remote_ip="121.43.164.242"
-config_remote_user="mkstar"
-config_remote_port="22"
+readonly CONFIG_REMOTE_IP="121.43.164.242"
+readonly CONFIG_REMOTE_USER="mkstar"
+readonly CONFIG_REMOTE_PORT="22"
 
 #远程服务器tomcat路径
-remote_tomcat="/arthas/servers01/apache-tomcat-8.5.4-80/"
+readonly REMOTE_TOMCAT="/arthas/servers01/apache-tomcat-8.5.4-80/"
 #设置环境变量
 source /etc/profile
 
@@ -31,10 +40,12 @@ webents_RPC=(mk-imgr-rpc mk-yum-rpc mk-mdata-rpc mk-uic-rpc mk-sn-rpc)
 ##############################################################################
 
 function pull_code(){
-	cd ${githome}
-	echo "git分支名称："+`git status |awk '{print $4}' |head -1`
+	cd ${GIT_HOME}
+	echo "git分支名称：" 　\
+	`git status |awk '{print $4}' |head -1`
 	echo "拉取当前分支代码"
-	git pull origin `git status |awk '{print $4}'|head -1` 
+	git pull origin \
+	`git status |awk '{print $4}'|head -1` 
 }
 
 
@@ -42,16 +53,17 @@ function pull_code(){
 ###       构建项目函数，传入webent名称
 ##############################################################################
 function build(){
-	cd ${githome}/$1 && echo "building $1"
+	local webent=$1; shift
+	cd ${GIT_HOME}/$webent && echo "building $webent"
 	mvn -q -ff clean install -P $profile
-	if [ -e $1/target/ROOT.war ] || [ -e $1/target/$1.jar ] ;then
-		echo "$1 build finished! "
+	if [ -e $webent/target/ROOT.war ] || [ -e $webent/target/$webent.jar ] ;then
+		echo "$webent build finished! "
 	else	
-		echo "$1 build ERROR,Please check your code!"
+		echo "$webent build ERROR,Please check your code!"
 	
-	if [ -e $1/target/$1.jar ] ;then
-		cd $1/target
-		tar -zcv $1.tar.gz lib　$1.jar
+	if [ -e $webent/target/$webent.jar ] ;then
+		cd $webent/target
+		tar -zcv $webent.tar.gz lib　$webent.jar
 }
 
 
@@ -59,18 +71,19 @@ function build(){
 ###       部署到tomcat的函数，传入webent名称
 ##############################################################################
 function deploy_webent(){
-	cd ${githome}
-	webent_name="$1|awk -F '-' '{print $2}'"
-	if [ -e $1/target/ROOT.war ] ;then
-		ssh -tt ${config_remote_user}@${config_remote_ip} -p ${config_remote_port}<<EOF
-			if [ ! -e ${sitesPath}/${webent_name} ];then
-				mkdir -p ${sitesPath}/${webent_name}
-			rm ${sitesPath}/${webent_name}/ROOT*
+	cd ${GIT_HOME}
+	local　webent=$1
+	local　webent_name="$1|awk -F '-' '{print $2}'"
+	if [ -e $webent/target/ROOT.war ] ;then
+		ssh -tt ${CONFIG_REMOTE_USER}@${CONFIG_REMOTE_IP} -p ${CONFIG_REMOTE_PORT}<<EOF
+			if [ ! -e ${SITE_PATH}/${webent_name} ];then
+				mkdir -p ${SITE_PATH}/${webent_name}
+			rm ${SITE_PATH}/${webent_name}/ROOT*
 			exit
 		EOF
 		
-		sftp ${config_remote_user}@${config_remote_ip} -P ${config_remote_port}<<EOE
-			put $1/target/ROOT.war ${sitesPath}/${webent_name}	
+		sftp ${CONFIG_REMOTE_USER}@${CONFIG_REMOTE_IP} -P ${CONFIG_REMOTE_PORT}<<EOE
+			put $webent/target/ROOT.war ${SITE_PATH}/${webent_name}	
 		EOE
 }
 
@@ -79,25 +92,26 @@ function deploy_webent(){
 ###       部署RPC的函数，传入RPC名称
 ##############################################################################
 function deploy_RPC(){
-	cd ${githome}
-	webent_name="${1#*-}"
-	if [ -e $1/target/ROOT.war ] ;then
-		ssh -tt ${config_remote_user}@${config_remote_ip} -p ${config_remote_port}<<EOF
-			if [ ! -e ${sitesPath}/${webent_name} ];then
-				mkdir -p ${sitesPath}/${webent_name}
-			rm ${sitesPath}/${webent_name}/*
+	cd ${GIT_HOME}
+	local　webent=$1
+	local webent_name="${1#*-}"
+	if [ -e $webent/target/ROOT.war ] ;then
+		ssh -tt ${CONFIG_REMOTE_USER}@${CONFIG_REMOTE_IP} -p ${CONFIG_REMOTE_PORT}<<EOF
+			if [ ! -e ${SITE_PATH}/${webent_name} ];then
+				mkdir -p ${SITE_PATH}/${webent_name}
+			rm ${SITE_PATH}/${webent_name}/*
 			exit
 		EOF
 
-		sftp ${config_remote_user}@${config_remote_ip} -P ${config_remote_port}<<EOE
-			put $1/target/$1.tar.gz ${sitesPath}/${webent_name}
+		sftp ${CONFIG_REMOTE_USER}@${CONFIG_REMOTE_IP} -P ${CONFIG_REMOTE_PORT}<<EOE
+			put $webent/target/$webent.tar.gz ${SITE_PATH}/${webent_name}
 			exit	
 		EOE
 		
-		ssh -tt ${config_remote_user}@${config_remote_ip} -p ${config_remote_port}<<EOD
+		ssh -tt ${CONFIG_REMOTE_USER}@${CONFIG_REMOTE_IP} -p ${CONFIG_REMOTE_PORT}<<EOD
 			kill -9 ${k}`ps -fe |grep $webent_name |awk '{print $2}'|head -1`
-			tar -zxf $1.tar.gz
-			nohup java -Xms246m -Xmx500m -jar $1.jar > $1.log &
+			tar -zxf $webent.tar.gz &&
+			nohup java -Xms246m -Xmx500m -jar $webent.jar > $webent.log &
 			exit
 		EOD
 		
@@ -107,9 +121,9 @@ function deploy_RPC(){
 ###       重启远程tomcat
 ##############################################################################
 function restartom(){
-	ssh -tt ${config_remote_user}@${config_remote_ip} -p ${config_remote_port}<<EOF
-		kill -9 ${k}`ps -fe |grep -v grep | grep ${remote_tomcat} |awk '{print $2}'|head -1`
-		cd ${remote_tomcat}/bin && ./startup.sh
+	ssh -tt ${CONFIG_REMOTE_USER}@${CONFIG_REMOTE_IP} -p ${CONFIG_REMOTE_PORT}<<EOF
+		kill -9 ${k}`ps -fe |grep -v grep | grep ${REMOTE_TOMCAT} |awk '{print $2}'|head -1`
+		cd ${REMOTE_TOMCAT}/bin && ./startup.sh
 		exit
 	EOF
 }
