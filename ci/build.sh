@@ -33,6 +33,12 @@ webents=(mk-aggregator mk-smart-webent mk-demon-webent mk-wm-msger mk-app-webent
 webents_RPC=(mk-imgr-rpc mk-yum-rpc mk-mdata-rpc mk-uic-rpc mk-sn-rpc)
 
 
+pull_code
+
+for webent in ${webents[@]} ;do
+	build ${webent}
+done
+
 
 
 ##############################################################################
@@ -60,10 +66,11 @@ function build(){
 		echo "$webent build finished! "
 	else	
 		echo "$webent build ERROR,Please check your code!"
-	
+	fi
 	if [ -e $webent/target/$webent.jar ] ;then
 		cd $webent/target
 		tar -zcv $webent.tar.gz lib　$webent.jar
+	fi
 }
 
 
@@ -85,6 +92,7 @@ function deploy_webent(){
 		sftp ${CONFIG_REMOTE_USER}@${CONFIG_REMOTE_IP} -P ${CONFIG_REMOTE_PORT}<<EOE
 			put $webent/target/ROOT.war ${SITE_PATH}/${webent_name}	
 		EOE
+	fi
 }
 
 
@@ -114,7 +122,7 @@ function deploy_RPC(){
 			nohup java -Xms246m -Xmx500m -jar $webent.jar > $webent.log &
 			exit
 		EOD
-		
+	fi	
 }
 
 ##############################################################################
