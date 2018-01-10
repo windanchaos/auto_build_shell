@@ -1,5 +1,5 @@
 #!/bin/bash
-githome="/home/mkstar/ArhasMK/"
+githome="~/ArhasMK/"
 #设置环境变量
 source /etc/profile
 echo "执行时间"`date`

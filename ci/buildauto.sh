@@ -9,6 +9,7 @@ history=`git log --since=9.hours -p . |grep diff |awk '{print $4}' |awk -F 'b/' 
 arr=(`echo $history`) 
 #get webent list first ,then build service before webents
 buildwebent=()
+#get webents in history
 for h in ${arr[@]}
 do
     for webent in ${webents[@]} 
